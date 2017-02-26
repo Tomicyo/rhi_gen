@@ -1,0 +1,52 @@
+import:
+  - interface.yml
+namespace: impl
+protype:
+  - factory impl:
+      type: class
+      inherit: nxt::factory
+
+  - swap chain impl:
+      type: class
+      inherit: nxt::swap chain
+
+  - device impl:
+      type: class
+      inherit: nxt::device
+
+  - command queue impl:
+      type: class
+      inherit: nxt::command queue
+
+  - command buffer impl:
+      type: class
+      inherit: nxt::command buffer
+
+  - pipeline state impl:
+      type: class
+      inherit: nxt::pipeline state
+
+  - pipeline layout impl:
+      type: class
+      inherit: nxt::pipeline layout
+
+  - binding group impl:
+      type: class
+      inherit: nxt::binding group
+
+  - buffer impl:
+      type: class
+      inherit: nxt::buffer
+
+  - texture impl:
+      type: class
+      inherit: nxt::texture
+
+  - sampler impl:
+      type: class
+      inherit: nxt::sampler
+
+  - render pass impl:
+      type: class
+      inherit: nxt::render pass
+
