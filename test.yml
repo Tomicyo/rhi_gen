@@ -1,0 +1,135 @@
+namespace: nxt
+
+EResult:
+    type: enum
+    enums:
+        - Ok
+        - Failed
+        - DeviceNotFound
+
+EPipelineType:
+    type: enum
+    enums:
+        - Graphics
+        - Compute
+
+ECommandQueueType:
+    type: enum
+    enums:
+        - Graphics
+        - Compute
+
+EShaderType:
+    type: enum
+    enums:
+        - Vertex
+        - Fragment
+        - Compute
+        - Geometry
+        - TessailationEval
+        - TessailationControl
+
+enumDevice:
+    type: function
+    param:
+        pDevices: IDeviceRef
+        pCount: uint32
+    return: Result
+
+IDevice:
+    type: interface
+
+createDevice:
+    type: function
+    param: 
+        pDevice: IDevicePtr
+        pOption: IDeviceOption
+    return: Result
+
+destroyDevice:
+    type: function
+    param: 
+        pDevice: IDevicePtr
+
+ICommandQueue:
+    type: interface
+
+createCommandQueue:
+    type: function
+    param:
+        pDevice: IDevicePtr
+        type: ECommandQueueType
+        pCmdQueue: ICommandQueuePtr
+    return: Result
+
+destroyCommandQueue:
+    type: function
+    param:
+        pDevice: IDevicePtr
+        pCmdQueue: ICommandQueuePtr
+
+IPipelineState:
+    type: interface
+
+createPipelineState:
+    type: function
+    param:
+        pDevice: IDevicePtr
+        type: EPipelineType
+        pPipelineState: IPipelineStatePtr
+
+ICommandBuffer:
+    type: interface
+
+createCommandBuffer:
+    type: function
+    param: 
+        pCommandQueue: ICommandQueue
+        pCommandBuffer: ICommandBuffer
+    return: Result
+
+destroyCommandBuffer:
+    type: function
+    param: 
+        pCommandBuffer: ICommandBuffer
+
+commandBufferBegin:
+    type: function
+    param: 
+        pCommandBuffer: ICommandBuffer
+
+commandBufferSetIndexBuffer:
+    type: function
+    param: 
+        pCommandBuffer: ICommandBuffer
+
+commandBufferSetVertexBuffer:
+    type: function
+    param: 
+        pCommandBuffer: ICommandBuffer
+
+commandBufferSetPipeline:
+    type: function
+    param: 
+        pCommandBuffer: ICommandBuffer
+
+commandBufferDrawIndex:
+    type: function
+    param: 
+        pCommandBuffer: ICommandBuffer
+
+commandBufferDraw:
+    type: function
+    param: 
+        pCommandBuffer: ICommandBuffer
+
+commandBufferEnd:
+    type: function
+    param: 
+        pCommandBuffer: ICommandBuffer
+
+commandBufferCommit:
+    type: function
+    param: 
+        pCommandBuffer: ICommandBuffer
+
