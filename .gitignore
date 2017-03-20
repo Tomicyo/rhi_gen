@@ -2,3 +2,6 @@
 build
 __pycache__
 .vscode
+*.dir
+.vs
+x64/**

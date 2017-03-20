@@ -1,0 +1,75 @@
+import:
+  - sappheiros.yml
+namespace: vulkan
+cpp: true
+headers:
+  - vulkan/vulkan.h
+protype:
+  - factory impl:
+      type: class
+      inherit: sph::factory
+      instance: VkInstance
+
+  - swap chain impl:
+      type: class
+      inherit: sph::swap chain
+      friends:
+        - factory impl
+      holdref:
+        - factory impl
+      instance: VkSwapChainKHR
+
+  - device impl:
+      type: class
+      inherit: sph::device
+      friends:
+        - factory impl
+      holdref:
+        - factory impl
+      instance: VkDevice
+
+  - command queue impl:
+      type: class
+      inherit: sph::command queue
+      friends:
+        - device impl
+
+  - command buffer impl:
+      type: class
+      inherit: sph::command buffer
+      friends:
+        - command queue impl
+      instance: VkCommandBuffer
+
+  - pipeline state impl:
+      type: class
+      inherit: sph::pipeline state
+
+  - pipeline layout impl:
+      type: class
+      inherit: sph::pipeline layout
+      instance: VkPipelineLayout
+
+  - binding group impl:
+      type: class
+      inherit: sph::binding group
+
+  - buffer impl:
+      type: class
+      inherit: sph::buffer
+      instance: VkBuffer
+
+  - texture impl:
+      type: class
+      inherit: sph::texture
+      instance: VkImage
+
+  - sampler impl:
+      type: class
+      inherit: sph::sampler
+      instance: VkSampler
+
+  - render pass impl:
+      type: class
+      inherit: sph::render pass
+      instance: VkRenderPass

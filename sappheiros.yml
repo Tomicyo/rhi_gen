@@ -1,4 +1,4 @@
-namespace: nxt
+namespace: sph
 protype:
     - result:
         type: enum
@@ -54,10 +54,10 @@ protype:
         enums:
             - Zero
             - One
-            - SrcColor
-            - DestColor
-            - SrcAlpha
-            - DescAlpha
+            - Src Color
+            - Dest Color
+            - Src Alpha
+            - Desc Alpha
 
     - stencil operation:
         type: enum
@@ -99,15 +99,39 @@ protype:
             - Zero
             - All
 
-    - gpu resource creation flag:
+    - resource state:
         type: enum
         bitmask: true
-        enums:
-            - Dynamic
-            - Static
-            - Transfer Src
+        enums: 
+            - Common
+            - Vertex Buffer
+            - Constant Buffer
+            - Render Target
+            - Pixel Shader Resource
+            - Transfer Source
             - Transfer Dest
+            - Present
+            - Generic Read
+
+    - resource view type:
+        type: enum
+        enums:
+            - Linear Buffer
+            - Sampled Texture
+            - Unorder Access Texture
+            - Unorder Access Buffer
     
+    - texture dimension:
+        type: enum
+        enums:
+            - 1D
+            - 2D
+            - 2D MS
+            - 2D Array
+            - 3D
+            - 3D Array
+            - Cube
+
     - fill mode:
         type: enum
         enums:
@@ -152,6 +176,8 @@ protype:
               type: blend type
             - name: alphaBlendOp
               type: blend operation
+            - name: colorWriteMask
+              type: uint32_t
 
     - depth stencil state:
         type: struct
@@ -184,6 +210,14 @@ protype:
             - Border
             - Mirror Once
     
+    - device desc:
+        type: struct
+        members:
+            - name: maxAllocation
+              type: uint64_t
+            - name: vendorName
+              type: char *
+
     - filter:
         type: struct
         members:
@@ -224,7 +258,15 @@ protype:
         type: struct
         comment: Description of the buffer usage
         members:
+            - name: view
+              type: resource view type
+            - name: state
+              type: resource state
+            - name: size
+              type: uint64_t
             - name: offset
+              type: uint64_t
+            - name: stride
               type: uint64_t
 
     - texture desc:
@@ -248,6 +290,12 @@ protype:
         type: struct
         comment: Description about how the texture be used
         members:
+            - name: view
+              type: resource view type
+            - name: state
+              type: resource state
+            - name: dimension
+              type: texture dimension
             - name: mipLevel
               type: uint32_t
 
@@ -279,10 +327,14 @@ protype:
         type: struct
         comment: Vertex input description
         members:
-            - name: attributes[]
-              type: vertex attribute
-            - name: layouts[]
-              type: vertex layout
+            - name: pAttributes
+              type: const vertex attribute *
+            - name: attributeCount
+              type: uint32_t
+            - name: pLayouts
+              type: const vertex layout *
+            - name: layoutCount
+              type: uint32_t
 
     - pipeline state desc:
         type: struct
@@ -374,6 +426,7 @@ protype:
 
     - swap chain:
         type: interface
+        inherit: ref obj
         comment: Present drawables
         functions:
             - present
@@ -394,6 +447,8 @@ protype:
                 params:
                     - name: desc
                       type: swap chain desc *
+                    - name: pWindow
+                      type: void *
                     - name: pSwapchain
                       type: swap chain **
                 return: result
@@ -478,6 +533,12 @@ protype:
     - buffer:
         type: interface
         inherit: resource
+        functions:
+            - get desc:
+                params:
+                    - name: pDesc
+                      type: buffer desc *
+                return: result
 
     - buffer view:
         type: interface
@@ -486,6 +547,12 @@ protype:
     - texture:
         type: interface
         inherit: resource
+        functions:
+            - get desc:
+                params:
+                    - name: pDesc
+                      type: texture desc *
+                return: result
 
     - texture view:
         type: interface
@@ -496,6 +563,10 @@ protype:
         inherit: ref obj
         comment: Gpu device
         functions:
+            - get desc:
+                params:
+                    - name: pDesc
+                      type: device desc *
             - create command queue:
                 params:
                     - name: queueType
@@ -537,6 +608,8 @@ protype:
                 params:
                     - name: desc
                       type: const buffer view desc *
+                    - name: pBuffer
+                      type: buffer *
                     - name: pBufView
                       type: buffer view **
                 return: result
@@ -551,6 +624,8 @@ protype:
                 params:
                     - name: desc
                       type: const texture view desc *
+                    - name: pTexture
+                      type: texture *
                     - name: pTexView
                       type: texture view **
                 return: result
@@ -570,6 +645,7 @@ protype:
 
     - command buffer:
         type: interface
+        comment: Gpu Command Buffer
         inherit: ref obj
         functions:
             - commit
@@ -610,9 +686,9 @@ protype:
             - set vertex buffer:
                 params:
                     - name: slot
-                      type: uint32
+                      type: uint32_t
                     - name: offset
-                      type: uint64
+                      type: uint64_t
                     - name: pVertexBuffer
                       type: buffer *
             - set primitive type:

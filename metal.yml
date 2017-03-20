@@ -1,0 +1,61 @@
+import:
+  - sappheiros.yml
+namespace: metal
+cpp: true
+protype:
+  - factory impl:
+      type: class
+      inherit: sph::factory
+
+  - swap chain impl:
+      type: class
+      inherit: sph::swap chain
+      friends:
+        - factory impl
+
+  - device impl:
+      type: class
+      inherit: sph::device
+      friends:
+        - factory impl
+
+  - command queue impl:
+      type: class
+      inherit: sph::command queue
+      friends:
+        - device impl
+
+  - command buffer impl:
+      type: class
+      inherit: sph::command buffer
+      friends:
+        - command queue impl
+
+  - pipeline state impl:
+      type: class
+      inherit: sph::pipeline state
+
+  - pipeline layout impl:
+      type: class
+      inherit: sph::pipeline layout
+
+  - binding group impl:
+      type: class
+      inherit: sph::binding group
+
+  - buffer impl:
+      type: class
+      inherit: sph::buffer
+
+  - texture impl:
+      type: class
+      inherit: sph::texture
+
+  - sampler impl:
+      type: class
+      inherit: sph::sampler
+
+  - render pass impl:
+      type: class
+      inherit: sph::render pass
+

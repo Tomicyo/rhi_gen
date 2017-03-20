@@ -49,6 +49,12 @@ def make_interface_name(prefix, name):
     else:
         return 'I' + make_name_AxxBxx(name)
         
+def make_class_name(prefix, name):
+    if prefix != '':
+        return prefix.upper() + make_name_AxxBxx(name)
+    else:
+        return make_name_AxxBxx(name)
+
 def make_struct_name(prefix, name):
     return prefix + make_name_AxxBxx(name)
 
@@ -63,5 +69,6 @@ NameUtil = {
     'enum': make_enum_name,
     'struct': make_struct_name,
     'interface': make_interface_name,
-    'function': make_struct_name
+    'function': make_struct_name,
+    'class': make_class_name
 }

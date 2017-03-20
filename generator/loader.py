@@ -21,6 +21,8 @@ class ProtypeLoader(object):
         self.__classlist__      = []
         self.__functionlist__   = []
         self.__imports__        = []
+        self.__type_tree__		= {}
+        self.__cpp__            = False
         with open(path) as yml:
             self.__contents__ = load(yml.read())
             yml.close()
@@ -28,14 +30,17 @@ class ProtypeLoader(object):
         if 'import' in self.__contents__:
             self.__imports__ = self.__contents__['import']
 
-        self.__namespace__ = self.__contents__['namespace']
-
-        # for p in self.parent:
-        #     self.__enumlist__.extend(p.enums)
-        #     self.__structlist__.extend(p.structs)
-        #     self.__interfacelist__.extend(p.interfaces)
-        #     self.__classlist__.extend(p.classes)
-        #     self.__functionlist__.extend(p.functions)
+        ns = self.__contents__['namespace']
+        self.__namespace__ = ns
+        if 'cpp' in self.__contents__:
+            self.__cpp__       = self.__contents__['cpp']
+            
+        self.__type_tree__[ns] = {}
+        self.__type_tree__[ns]['enum'] = {}
+        self.__type_tree__[ns]['struct'] = {}
+        self.__type_tree__[ns]['interface'] = {}
+        self.__type_tree__[ns]['class'] = {}
+        self.__type_tree__[ns]['function'] = {}
 
         for element in self.__contents__['protype']:
             for (key, val) in element.items():
@@ -45,32 +50,31 @@ class ProtypeLoader(object):
                         'enum': key,
                         'val': val
                     })
+                    self.__type_tree__[ns]['enum'][key] = val
                 elif val['type'] == 'function':
                     self.__functionlist__.append({
                         'function': key,
                         'val': val
                     })
+                    self.__type_tree__[ns]['function'][key] = val
                 elif val['type'] == 'interface':
                     self.__interfacelist__.append({
                         'interface': key,
                         'val':val
                     })
+                    self.__type_tree__[ns]['interface'][key] = val
                 elif val['type'] == 'struct':
                     self.__structlist__.append({
                         'struct': key,
                         'val':val
                     })
+                    self.__type_tree__[ns]['struct'][key] = val
                 elif val['type'] == 'class':
                     self.__classlist__.append({
                         'class': key,
                         'val':val
                     })
-
-    # def process_import(self, imports):
-    #     if imports:
-    #         for _import in imports:
-    #             self.parent.append(ProtypeLoader(_import))
-
+                    self.__type_tree__[ns]['class'][key] = val
 
     @property
     def enums(self):
@@ -91,6 +95,10 @@ class ProtypeLoader(object):
     @property
     def namespace(self):
         return self.__namespace__
+
+    @property
+    def type_tree(self):
+    	return self.__type_tree__
 
     @property
     def classes(self):

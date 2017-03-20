@@ -32,51 +32,70 @@ class TemplateGenerator(object):
     'template generator'
     def __init__(self):
         self.ns = ''
+        self.type_tree = {}
 
     def gen(self, templ, outpath=''):
         if isinstance(templ, ProtypeLoader):
             print('generating ...', outpath)
             self.content = templ.__type_dict__
+            self.type_tree = templ.type_tree
 
             dir_ = os.path.dirname(outpath)
+            (headername,extension) = os.path.splitext(os.path.basename(outpath))
             if not os.path.exists(dir_) and dir_ != '':
                 os.makedirs(dir_)
 
-            self.include_enums = []
-            self.include_structs = []
-            self.include_interfaces = []
-
             import_names = self.gen_imports(templ.imports, self.content, dir_)
+            self.ns = templ.namespace
+            self.is_cpp = templ.__cpp__
 
             self.__header__ = open(outpath, 'w')
             self.__header__.write(license_tsinstudio)
-            self.ns = templ.namespace
             for include in import_names:
                 self.__header__.write('#include \"%s.h\"\n' % include)
 
             self.__header__.write('#include <stdint.h>\n')
             
+            self.__header__.write('\ntypedef float float32;\n')
+
+            if templ.__cpp__:
+                self.__header__.write('\nnamespace {0}\n{{'.format(self.ns))
+
             for enum in templ.enums:
                 self.write_enum(enum)
 
             for struct in templ.structs:
                 self.write_struct(struct)
 
-            self.__header__.write('\n#if __cplusplus\n')
+            if not templ.__cpp__:
+                self.__header__.write('\n#if __cplusplus\n')
 
             for interface in templ.interfaces:
                 self.write_interface_forward_decl(interface)
-
+            self.__header__.write('\n')
+            
             for interface in templ.interfaces:
                 self.write_interface(interface)
 
             for function in templ.functions:
                 self.write_function(function)
 
+            if len(templ.classes) > 0:
+                self.__source__ = open(os.path.join(dir_, headername + '.cpp'), 'w')
+                self.__source__.write('#include \"%s.h\"\n' % headername)
+                if templ.__cpp__:
+                    self.__source__.write('\nnamespace %s \n{\n' % self.ns)
+
             for class_ in templ.classes:
                 self.write_class(class_)
 
-            self.__header__.write('\n#endif // __cplusplus\n')
+            if len(templ.classes) > 0 and templ.__cpp__:
+                self.__source__.write('\n} // end %s\n' % self.ns)
+            
+            if templ.__cpp__:
+                self.__header__.write('\n} // namespace %s' % self.ns)
+            else:
+                self.__header__.write('\n#endif // __cplusplus\n')
                                     
         else:
             print('Error')
@@ -88,9 +107,7 @@ class TemplateGenerator(object):
                 tp = ProtypeLoader(import_templ)
                 i_name = ''
                 self.content = dict(self.content, **tp.__type_dict__)
-                
-                self.include_interfaces.extend(tp.interfaces)
-
+                self.type_tree = dict(self.type_tree, **tp.type_tree)
                 if '.yml' in import_templ:
                     i_name = import_templ[:-4]
                 self.gen(tp, os.path.join(dir_, i_name + '.h'))
@@ -99,7 +116,7 @@ class TemplateGenerator(object):
 
     def write_interface_forward_decl(self, interface):
         interface_name = interface['interface']
-        self.__header__.write('\nstruct {0};\n'.format(NameUtil['interface'](self.ns, interface_name)))
+        self.__header__.write('\nstruct {0};'.format(NameUtil['interface'](self.ns, interface_name)))
 
     def write_interface(self, interface):
         interface_name = interface['interface']
@@ -152,12 +169,13 @@ class TemplateGenerator(object):
             self.__header__.write(', '.join(param_list))
             self.__header__.write(') = 0;\n')
 
-    def get_real_type_name(self, type_name):
+    def get_real_type_name(self, type_name, ns=None):
         r_type_name = type_name
         real_param_t = re_param.findall(type_name)[0][1]
         if real_param_t in self.content:
             param_t_name = self.content[real_param_t]
-            real_param_t_name = NameUtil[param_t_name](self.ns, real_param_t)
+            real_param_t_name = NameUtil[param_t_name](self.ns if ns==None else ns, real_param_t)
+            print(real_param_t_name, re_param.match(type_name).group())
             r_type_name = re_param.sub(r'\1 ' + real_param_t_name, type_name)
         if r_type_name[0:1] == ' ':
             r_type_name = r_type_name[1:]
@@ -183,7 +201,7 @@ class TemplateGenerator(object):
         if 'comment' in val:
             self.__header__.write('\n// {0}'.format(val['comment'])) 
         r_enum_name = make_enum_name(self.ns, enum_name)
-        self.__header__.write('\ntypedef enum\n{\n')
+        self.__header__.write('\ntypedef enum {0}\n{{\n'.format(r_enum_name))
         bit = 1
         for enum_val in enum_vals:
             enum_val_name = make_enum_value(make_name_XXX_XXX(enum_name), enum_val)
@@ -217,6 +235,8 @@ class TemplateGenerator(object):
             member_name = member['name']
             if member_type in self.content:
                 member_type = NameUtil[self.content[member_type]](self.ns, member_type)
+            elif not self.isBasicType(member_type):
+                member_type = self.get_real_type_name(member_type, self.ns)
             self.__header__.write('  {0} {1};\n'.format(member_type, member_name))
             m_func_name = 'set%s' % make_struct_name('', member_name)
             m_func_param = (member_type, member_name)
@@ -228,12 +248,10 @@ class TemplateGenerator(object):
             if ',' in member_name:
                 sub_member = member_name.split(',')
                 for sub in sub_member:
-                    #member_params.append((member_type, sub))
                     r_sub = self.stripHeadSpace(sub)
                     member_params_str.append(' '.join([member_type, '_' + r_sub]))
                     init_list_str.append('{0}(_{0})'.format(r_sub))
             else:
-                #member_params.append((member_type, member_name))
                 member_params_str.append(' '.join([member_type, '_' + member_name]))
                 init_list_str.append('{0}(_{0})'.format(member_name))
 
@@ -250,15 +268,19 @@ class TemplateGenerator(object):
                 for m_name in member_names:
                     rm_name = self.stripHeadSpace(m_name)
                     m_func_params.append('{0} _{1}'.format(setter['param'][0], rm_name))
-                    m_func_impl.append('{0} = _{0}'.format(rm_name))
+                    m_func_impl.append('{0} = _{0};'.format(rm_name))
                 self.__header__.write('\n  {0}& {1}({2})\n  {{\n    {3}\n    return *this;\n  }}\n'.
                     format(r_struct_name, func_name, ', '.join(m_func_params), '\n    '.join(m_func_impl)))
             else:
-                self.__header__.write('\n  {0}& {1}({2} _{3})\n  {{\n    {3} = _{3}\n    return *this;\n  }}\n'.
+                self.__header__.write('\n  {0}& {1}({2} _{3})\n  {{\n    {3} = _{3};\n    return *this;\n  }}\n'.
                     format(r_struct_name, setter['func'], setter['param'][0], setter['param'][1]))
         
         self.__header__.write('#endif\n')
         self.__header__.write('};\n')
+
+    def isBasicType(self, t):
+        basicType = ['uint32_t', 'uint64_t', 'float32', 'bool', 'float', 'int32_t']
+        return t in basicType
 
     def stripHeadSpace(self, str_):
         if str_ and str_[0:1] == ' ':
@@ -267,11 +289,11 @@ class TemplateGenerator(object):
             return str_
 
     def write_class(self, class_):
-        #print(class_)
         class_name = class_['class']
         class_val = class_['val']
         parent_type_name = ''
         parent_type_ns = ''
+        r_cls_name = NameUtil['class'](self.ns if not self.is_cpp else '', class_name)
         if 'inherit' in class_val:
             parent_type = class_val['inherit']
             if '::' in parent_type:
@@ -280,7 +302,87 @@ class TemplateGenerator(object):
                 if len_seg >= 2:
                     parent_type_ns = type_segs[0]
                 parent_type_name = type_segs[-1]
-                print(parent_type_name in self.content)
 
-        
+                if parent_type_ns in self.type_tree:
+                    ptype = self.content[parent_type_name] # return interface / struct
+                    pname = NameUtil[ptype](parent_type_ns, parent_type_name)
+                    pelem = self.type_tree[parent_type_ns][ptype][parent_type_name]
+                    self.__header__.write('\nclass {0} : public {1}\n{{\npublic:\n'.format(r_cls_name, pname))
+                    if 'functions' in pelem:
+                        for function in pelem['functions']:
+                            if isinstance(function, dict):
+                                for (func_name, func_val) in function.items():
+                                    self.gen_class_function(func_name, function=func_val, class_name=r_cls_name, ns=parent_type_ns)
+                            else:
+                                self.gen_class_function(function, class_name=r_cls_name, ns=parent_type_ns)
+                    # write 'friend class'
+                    if 'friends' in class_val:
+                        friends_types = class_val['friends']
+                        for _f_type in friends_types:
+                            self.__header__.write('\n  friend class {0};\n'.
+                                format(NameUtil['class'](self.ns if not self.is_cpp else '',
+                                _f_type)))
+
+                    # then generate constructor and deconstructor
+                    self.__header__.write('private:\n  {0}();\n  ~{0}();\n'.format(r_cls_name))
+                    if self.__source__:
+                        self.__source__.write('\n{0}::{0}()\n{{\n}}\n'.format(r_cls_name))
+                        self.__source__.write('\n{0}::~{0}()\n{{\n}}\n'.format(r_cls_name))
+
+                    if 'holdref' in class_val:
+                        hold_refs = class_val['holdref']
+                        for h_ref in hold_refs:
+                            r_h_ref = NameUtil['class'](self.ns if not self.is_cpp else '', h_ref)
+                            self.__header__.write('  {0}* {0}_;\n'.format(r_h_ref))
+
+                    self.__header__.write('};\n')
+
+    def gen_class_function(self, func_name, class_name=None, function=None, ns=None):
+        ret = 'void'
+        r_ret = ret
+        real_func_name = NameUtil['function']('', func_name)
+        if not function:
+            self.__header__.write('  {0} {1}() override;\n'.format(r_ret, real_func_name))
+            if self.__source__:
+                self.__source__.write('\n{0} {1}::{2}()\n{{\n}}\n'.format(r_ret, class_name, real_func_name))
+        else:
+            if 'return' in function:
+                ret = function['return']
+                r_ret = self.get_real_type_name(ret, ns)
+            param_list = []
+            if 'params' in function:
+                params = function['params']
+                for param in params:
+                    if not param:
+                        continue
+                    if 'type' not in param:
+                        print(param, 'error')
+                    param_type = param['type']
+                    r_param_type = self.get_real_type_name(param_type, ns)
+                    param_list.append(' '.join([r_param_type, param['name']]))
+
+            self.__header__.write('  {0} {1}('.format(r_ret, real_func_name))
+            self.__header__.write(', '.join(param_list))
+            self.__header__.write(') override;\n')
+
+            if self.__source__:
+                default_ret_statement = ''
+                for (ns, val) in self.type_tree.items():
+                    for (_type, _type_name_val) in val.items():
+                        if ret in _type_name_val:
+                            if 'enum' == _type:
+                                e_parts = []
+                                e_parts.append(ns.upper())
+                                eval_parts = ret.upper().split(' ')
+                                e_parts.extend(eval_parts)
+                                e_parts.append(_type_name_val[ret]['enums'][0].upper())
+                                e_val = '_'.join(e_parts)
+                                default_ret_statement = '  return ' + e_val + ';\n'
+                        elif ret.endswith('*'):
+                            default_ret_statement = '  return nullptr;\n'
+                        #else:
+                        #    print(ret)
+
+                self.__source__.write('\n{0} {1}::{2}({3})\n{{\n{4}}}\n'.format(r_ret, class_name, real_func_name, ', '.join(param_list), default_ret_statement))
+
         
