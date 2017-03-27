@@ -20,7 +20,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 **/
-#include "interface.h"
+#include "sappheiros.h"
 #include <vulkan/vulkan.h>
 
 namespace vulkan
@@ -66,19 +66,19 @@ protected:
   T handle;
 };
 
-class FactoryImpl : public TObj<VkInstance, INXTFactory>
+class FactoryImpl : public TObj<VkInstance, ISPHFactory>
 {
 public:
-  using This = TObj<VkInstance, INXTFactory>;
-  nxtResult EnumDevice(uint32_t * count, INXTDevice ** ppDevice) override;
-  nxtResult CreateSwapchain(nxtSwapChainDesc * desc, void * pWindow, INXTSwapChain ** pSwapchain) override;
+  using This = TObj<VkInstance, ISPHFactory>;
+  sphResult EnumDevice(uint32_t * count, ISPHDevice ** ppDevice) override;
+  sphResult CreateSwapchain(sphSwapChainDesc * desc, void * pWindow, ISPHSwapChain ** pSwapchain) override;
 private:
-  friend INXTFactory * CreateFactory();
+  friend ISPHFactory * CreateFactory();
   FactoryImpl();
   ~FactoryImpl();
 };
 
-class SwapChainImpl : public TObj<VkSwapchainKHR, INXTSwapChain>
+class SwapChainImpl : public TObj<VkSwapchainKHR, ISPHSwapChain>
 {
 public:
   void Present() override;
@@ -89,21 +89,21 @@ private:
   FactoryImpl * mImpl;
 };
 
-class DeviceImpl : public TObj<VkDevice, INXTDevice>
+class DeviceImpl : public TObj<VkDevice, ISPHDevice>
 {
 public:
-  using This = TObj<VkDevice, INXTDevice>;
-  void GetDesc(nxtDeviceDesc * pDesc) override;
-  nxtResult CreateCommandQueue(nxtCommandQueueType queueType, INXTCommandQueue ** pQueue) override;
-  nxtResult CreatePipelineLayout(INXTPipelineLayout ** ppPipelineLayout) override;
-  nxtResult CreatePipelineState(const nxtPipelineStateDesc * pPipelineDesc, INXTPipelineState ** pPipelineState) override;
-  nxtResult CreateRenderPass() override;
-  nxtResult CreateRenderTarget() override;
-  nxtResult CreateSampler(const nxtSamplerDesc* desc, INXTSampler ** pSampler) override;
-  nxtResult CreateBuffer(const nxtBufferDesc* desc, INXTBuffer ** pBuffer) override;
-  nxtResult CreateBufferView(const nxtBufferViewDesc * desc, INXTBuffer * pBuffer, INXTBufferView ** pBufView) override;
-  nxtResult CreateTexture(const nxtTextureDesc * desc, INXTTexture ** pTexture) override;
-  nxtResult CreateTextureView(const nxtTextureViewDesc * desc, INXTTexture * pTexture, INXTTextureView ** pTexView) override;
+  using This = TObj<VkDevice, ISPHDevice>;
+  void GetDesc(sphDeviceDesc * pDesc) override;
+  sphResult CreateCommandQueue(sphCommandQueueType queueType, ISPHCommandQueue ** pQueue) override;
+  sphResult CreatePipelineLayout(ISPHPipelineLayout ** ppPipelineLayout) override;
+  sphResult CreatePipelineState(const sphPipelineStateDesc * pPipelineDesc, ISPHPipelineState ** pPipelineState) override;
+  sphResult CreateRenderPass() override;
+  sphResult CreateRenderTarget() override;
+  sphResult CreateSampler(const sphSamplerDesc* desc, ISPHSampler ** pSampler) override;
+  sphResult CreateBuffer(const sphBufferDesc* desc, ISPHBuffer ** pBuffer) override;
+  sphResult CreateBufferView(const sphBufferViewDesc * desc, ISPHBuffer * pBuffer, ISPHBufferView ** pBufView) override;
+  sphResult CreateTexture(const sphTextureDesc * desc, ISPHTexture ** pTexture) override;
+  sphResult CreateTextureView(const sphTextureViewDesc * desc, ISPHTexture * pTexture, ISPHTextureView ** pTexView) override;
   void WaitIdle() override;
 private:
   friend class FactoryImpl;
@@ -114,35 +114,35 @@ private:
   FactoryImpl * mImpl;
 };
 
-class CommandQueueImpl : public INXTCommandQueue
+class CommandQueueImpl : public ISPHCommandQueue
 {
 public:
-  INXTCommandBuffer * CommandBuffer() override;
+  ISPHCommandBuffer * CommandBuffer() override;
 private:
   CommandQueueImpl();
   ~CommandQueueImpl();
 };
 
-class CommandBufferImpl : public INXTCommandBuffer
+class CommandBufferImpl : public ISPHCommandBuffer
 {
 public:
   void Commit() override;
-  void Present(INXTSwapChain * pSwapChain) override;
+  void Present(ISPHSwapChain * pSwapChain) override;
   void CopyTexture() override;
   void CopyBuffer() override;
   void ClearColorDepth() override;
   void Begin() override;
-  void BeginRenderPass(const INXTRenderPass* pRenderPass) override;
+  void BeginRenderPass(const ISPHRenderPass* pRenderPass) override;
   void SetScissorRects() override;
-  void SetViewport(const nxtViewport * pViewport) override;
-  void SetPipelineState(INXTPipelineState* pPipelineState) override;
-  void SetPipelineLayout(INXTPipelineLayout * pPipelineLayout) override;
-  void SetBindingGroup(INXTBindingGroup * pBindingGroup) override;
+  void SetViewport(const sphViewport * pViewport) override;
+  void SetPipelineState(ISPHPipelineState* pPipelineState) override;
+  void SetPipelineLayout(ISPHPipelineLayout * pPipelineLayout) override;
+  void SetBindingGroup(ISPHBindingGroup * pBindingGroup) override;
   void SetIndexBuffer() override;
-  void SetVertexBuffer(uint32_t slot, uint64_t offset, INXTBuffer * pVertexBuffer) override;
-  void SetPrimitiveType(nxtPrimitiveType primitive) override;
-  void DrawInstanced(const nxtDrawInstancedDesc * drawParam) override;
-  void DrawIndexedInstanced(const nxtDrawIndexedInstancedDesc * drawParam) override;
+  void SetVertexBuffer(uint32_t slot, uint64_t offset, ISPHBuffer * pVertexBuffer) override;
+  void SetPrimitiveType(sphPrimitiveType primitive) override;
+  void DrawInstanced(const sphDrawInstancedDesc * drawParam) override;
+  void DrawIndexedInstanced(const sphDrawIndexedInstancedDesc * drawParam) override;
   void EndRenderPass() override;
   void End() override;
   void Dispatch(uint32_t x, uint32_t y, uint32_t z) override;
@@ -152,17 +152,17 @@ private:
   ~CommandBufferImpl();
 };
 
-class PipelineStateImpl : public INXTPipelineState
+class PipelineStateImpl : public ISPHPipelineState
 {
 public:
-  nxtPipelineType Type() override;
-  nxtResult GetDesc(nxtPipelineStateDesc * desc) override;
+  sphPipelineType Type() override;
+  sphResult GetDesc(sphPipelineStateDesc * desc) override;
 private:
   PipelineStateImpl();
   ~PipelineStateImpl();
 };
 
-class PipelineLayoutImpl : public INXTPipelineLayout
+class PipelineLayoutImpl : public ISPHPipelineLayout
 {
 public:
 private:
@@ -170,45 +170,45 @@ private:
   ~PipelineLayoutImpl();
 };
 
-class BindingGroupImpl : public INXTBindingGroup
+class BindingGroupImpl : public ISPHBindingGroup
 {
 public:
-  void SetSampler(uint32_t index, nxtShaderType shaderVis, INXTSampler * pSampler) override;
-  void SetBuffer(uint32_t index, nxtShaderType shaderVis, INXTBufferView * bufferView) override;
-  void SetTexture(uint32_t index, nxtShaderType shaderVis, INXTTextureView * textureView) override;
+  void SetSampler(uint32_t index, sphShaderType shaderVis, ISPHSampler * pSampler) override;
+  void SetBuffer(uint32_t index, sphShaderType shaderVis, ISPHBufferView * bufferView) override;
+  void SetTexture(uint32_t index, sphShaderType shaderVis, ISPHTextureView * textureView) override;
 private:
   BindingGroupImpl();
   ~BindingGroupImpl();
 };
 
-class BufferImpl : public INXTBuffer
+class BufferImpl : public ISPHBuffer
 {
 public:
-  nxtResult GetDesc(nxtBufferDesc * pDesc) override;
+  sphResult GetDesc(sphBufferDesc * pDesc) override;
 private:
   BufferImpl();
   ~BufferImpl();
 };
 
-class TextureImpl : public INXTTexture
+class TextureImpl : public ISPHTexture
 {
 public:
-  nxtResult GetDesc(nxtTextureDesc * pDesc) override;
+  sphResult GetDesc(sphTextureDesc * pDesc) override;
 private:
   TextureImpl();
   ~TextureImpl();
 };
 
-class SamplerImpl : public INXTSampler
+class SamplerImpl : public ISPHSampler
 {
 public:
-  nxtResult GetDesc(nxtSamplerDesc * desc) override;
+  sphResult GetDesc(sphSamplerDesc * desc) override;
 private:
   SamplerImpl();
   ~SamplerImpl();
 };
 
-class RenderPassImpl : public INXTRenderPass
+class RenderPassImpl : public ISPHRenderPass
 {
 public:
 private:
@@ -216,4 +216,5 @@ private:
   ~RenderPassImpl();
 };
 
+ISPHFactory * CreateFactory();
 } // namespace vulkan

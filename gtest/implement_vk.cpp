@@ -1,4 +1,4 @@
-#include "implement.h"
+#include "implement_vk.h"
 #include <vector>
 #include <array>
 
@@ -7,7 +7,7 @@ using namespace std;
 namespace vulkan 
 {
 
-nxtResult FactoryImpl::EnumDevice(uint32_t * count, INXTDevice ** ppDevice)
+sphResult FactoryImpl::EnumDevice(uint32_t * count, ISPHDevice ** ppDevice)
 {
   vkEnumeratePhysicalDevices(handle, count, nullptr);
   vector<VkPhysicalDevice> Devices;
@@ -17,13 +17,13 @@ nxtResult FactoryImpl::EnumDevice(uint32_t * count, INXTDevice ** ppDevice)
   {
     ppDevice[0] = new DeviceImpl(this, Devices[0]);
   }
-  return NXT_RESULT_OK;
+  return SPH_RESULT_OK;
 }
 
-nxtResult FactoryImpl::CreateSwapchain(nxtSwapChainDesc * desc, void * pWindow, INXTSwapChain ** pSwapchain)
+sphResult FactoryImpl::CreateSwapchain(sphSwapChainDesc * desc, void * pWindow, ISPHSwapChain ** pSwapchain)
 {
   *pSwapchain = new SwapChainImpl(this);
-  return NXT_RESULT_OK;
+  return SPH_RESULT_OK;
 }
 
 FactoryImpl::FactoryImpl() : FactoryImpl::This()
@@ -68,61 +68,61 @@ SwapChainImpl::~SwapChainImpl()
   mImpl->Release();
 }
 
-void DeviceImpl::GetDesc(nxtDeviceDesc * pDesc)
+void DeviceImpl::GetDesc(sphDeviceDesc * pDesc)
 {
   vkGetPhysicalDeviceProperties(mGpu, &props);
   pDesc->maxAllocation = props.limits.maxMemoryAllocationCount;
   pDesc->vendorName = props.deviceName;
 }
 
-nxtResult DeviceImpl::CreateCommandQueue(nxtCommandQueueType queueType, INXTCommandQueue ** pQueue)
+sphResult DeviceImpl::CreateCommandQueue(sphCommandQueueType queueType, ISPHCommandQueue ** pQueue)
 {
-  return NXT_RESULT_OK;
+  return SPH_RESULT_OK;
 }
 
-nxtResult DeviceImpl::CreatePipelineLayout(INXTPipelineLayout ** ppPipelineLayout)
+sphResult DeviceImpl::CreatePipelineLayout(ISPHPipelineLayout ** ppPipelineLayout)
 {
-  return NXT_RESULT_OK;
+  return SPH_RESULT_OK;
 }
 
-nxtResult DeviceImpl::CreatePipelineState(const nxtPipelineStateDesc * pPipelineDesc, INXTPipelineState ** pPipelineState)
+sphResult DeviceImpl::CreatePipelineState(const sphPipelineStateDesc * pPipelineDesc, ISPHPipelineState ** pPipelineState)
 {
-  return NXT_RESULT_OK;
+  return SPH_RESULT_OK;
 }
 
-nxtResult DeviceImpl::CreateRenderPass()
+sphResult DeviceImpl::CreateRenderPass()
 {
-  return NXT_RESULT_OK;
+  return SPH_RESULT_OK;
 }
 
-nxtResult DeviceImpl::CreateRenderTarget()
+sphResult DeviceImpl::CreateRenderTarget()
 {
-  return NXT_RESULT_OK;
+  return SPH_RESULT_OK;
 }
 
-nxtResult DeviceImpl::CreateSampler(const nxtSamplerDesc* desc, INXTSampler ** pSampler)
+sphResult DeviceImpl::CreateSampler(const sphSamplerDesc* desc, ISPHSampler ** pSampler)
 {
-  return NXT_RESULT_OK;
+  return SPH_RESULT_OK;
 }
 
-nxtResult DeviceImpl::CreateBuffer(const nxtBufferDesc* desc, INXTBuffer ** pBuffer)
+sphResult DeviceImpl::CreateBuffer(const sphBufferDesc* desc, ISPHBuffer ** pBuffer)
 {
-  return NXT_RESULT_OK;
+  return SPH_RESULT_OK;
 }
 
-nxtResult DeviceImpl::CreateBufferView(const nxtBufferViewDesc * desc, INXTBuffer * pBuffer, INXTBufferView ** pBufView)
+sphResult DeviceImpl::CreateBufferView(const sphBufferViewDesc * desc, ISPHBuffer * pBuffer, ISPHBufferView ** pBufView)
 {
-  return NXT_RESULT_OK;
+  return SPH_RESULT_OK;
 }
 
-nxtResult DeviceImpl::CreateTexture(const nxtTextureDesc * desc, INXTTexture ** pTexture)
+sphResult DeviceImpl::CreateTexture(const sphTextureDesc * desc, ISPHTexture ** pTexture)
 {
-  return NXT_RESULT_OK;
+  return SPH_RESULT_OK;
 }
 
-nxtResult DeviceImpl::CreateTextureView(const nxtTextureViewDesc * desc, INXTTexture * pTexture, INXTTextureView ** pTexView)
+sphResult DeviceImpl::CreateTextureView(const sphTextureViewDesc * desc, ISPHTexture * pTexture, ISPHTextureView ** pTexView)
 {
-  return NXT_RESULT_OK;
+  return SPH_RESULT_OK;
 }
 
 void DeviceImpl::WaitIdle()
@@ -166,7 +166,7 @@ DeviceImpl::~DeviceImpl()
   mImpl->Release();
 }
 
-INXTCommandBuffer * CommandQueueImpl::CommandBuffer()
+ISPHCommandBuffer * CommandQueueImpl::CommandBuffer()
 {
   return nullptr;
 }
@@ -183,7 +183,7 @@ void CommandBufferImpl::Commit()
 {
 }
 
-void CommandBufferImpl::Present(INXTSwapChain * pSwapChain)
+void CommandBufferImpl::Present(ISPHSwapChain * pSwapChain)
 {
 }
 
@@ -203,7 +203,7 @@ void CommandBufferImpl::Begin()
 {
 }
 
-void CommandBufferImpl::BeginRenderPass(const INXTRenderPass* pRenderPass)
+void CommandBufferImpl::BeginRenderPass(const ISPHRenderPass* pRenderPass)
 {
 }
 
@@ -211,19 +211,19 @@ void CommandBufferImpl::SetScissorRects()
 {
 }
 
-void CommandBufferImpl::SetViewport(const nxtViewport * pViewport)
+void CommandBufferImpl::SetViewport(const sphViewport * pViewport)
 {
 }
 
-void CommandBufferImpl::SetPipelineState(INXTPipelineState* pPipelineState)
+void CommandBufferImpl::SetPipelineState(ISPHPipelineState* pPipelineState)
 {
 }
 
-void CommandBufferImpl::SetPipelineLayout(INXTPipelineLayout * pPipelineLayout)
+void CommandBufferImpl::SetPipelineLayout(ISPHPipelineLayout * pPipelineLayout)
 {
 }
 
-void CommandBufferImpl::SetBindingGroup(INXTBindingGroup * pBindingGroup)
+void CommandBufferImpl::SetBindingGroup(ISPHBindingGroup * pBindingGroup)
 {
 }
 
@@ -231,19 +231,19 @@ void CommandBufferImpl::SetIndexBuffer()
 {
 }
 
-void CommandBufferImpl::SetVertexBuffer(uint32_t slot, uint64_t offset, INXTBuffer * pVertexBuffer)
+void CommandBufferImpl::SetVertexBuffer(uint32_t slot, uint64_t offset, ISPHBuffer * pVertexBuffer)
 {
 }
 
-void CommandBufferImpl::SetPrimitiveType(nxtPrimitiveType primitive)
+void CommandBufferImpl::SetPrimitiveType(sphPrimitiveType primitive)
 {
 }
 
-void CommandBufferImpl::DrawInstanced(const nxtDrawInstancedDesc * drawParam)
+void CommandBufferImpl::DrawInstanced(const sphDrawInstancedDesc * drawParam)
 {
 }
 
-void CommandBufferImpl::DrawIndexedInstanced(const nxtDrawIndexedInstancedDesc * drawParam)
+void CommandBufferImpl::DrawIndexedInstanced(const sphDrawIndexedInstancedDesc * drawParam)
 {
 }
 
@@ -271,14 +271,14 @@ CommandBufferImpl::~CommandBufferImpl()
 {
 }
 
-nxtPipelineType PipelineStateImpl::Type()
+sphPipelineType PipelineStateImpl::Type()
 {
-  return NXT_PIPELINE_TYPE_GRAPHICS;
+  return SPH_PIPELINE_TYPE_GRAPHICS;
 }
 
-nxtResult PipelineStateImpl::GetDesc(nxtPipelineStateDesc * desc)
+sphResult PipelineStateImpl::GetDesc(sphPipelineStateDesc * desc)
 {
-  return NXT_RESULT_OK;
+  return SPH_RESULT_OK;
 }
 
 PipelineStateImpl::PipelineStateImpl()
@@ -297,15 +297,15 @@ PipelineLayoutImpl::~PipelineLayoutImpl()
 {
 }
 
-void BindingGroupImpl::SetSampler(uint32_t index, nxtShaderType shaderVis, INXTSampler * pSampler)
+void BindingGroupImpl::SetSampler(uint32_t index, sphShaderType shaderVis, ISPHSampler * pSampler)
 {
 }
 
-void BindingGroupImpl::SetBuffer(uint32_t index, nxtShaderType shaderVis, INXTBufferView * bufferView)
+void BindingGroupImpl::SetBuffer(uint32_t index, sphShaderType shaderVis, ISPHBufferView * bufferView)
 {
 }
 
-void BindingGroupImpl::SetTexture(uint32_t index, nxtShaderType shaderVis, INXTTextureView * textureView)
+void BindingGroupImpl::SetTexture(uint32_t index, sphShaderType shaderVis, ISPHTextureView * textureView)
 {
 }
 
@@ -317,9 +317,9 @@ BindingGroupImpl::~BindingGroupImpl()
 {
 }
 
-nxtResult BufferImpl::GetDesc(nxtBufferDesc * pDesc)
+sphResult BufferImpl::GetDesc(sphBufferDesc * pDesc)
 {
-  return NXT_RESULT_OK;
+  return SPH_RESULT_OK;
 }
 
 BufferImpl::BufferImpl()
@@ -330,9 +330,9 @@ BufferImpl::~BufferImpl()
 {
 }
 
-nxtResult TextureImpl::GetDesc(nxtTextureDesc * pDesc)
+sphResult TextureImpl::GetDesc(sphTextureDesc * pDesc)
 {
-  return NXT_RESULT_OK;
+  return SPH_RESULT_OK;
 }
 
 TextureImpl::TextureImpl()
@@ -343,9 +343,9 @@ TextureImpl::~TextureImpl()
 {
 }
 
-nxtResult SamplerImpl::GetDesc(nxtSamplerDesc * desc)
+sphResult SamplerImpl::GetDesc(sphSamplerDesc * desc)
 {
-  return NXT_RESULT_OK;
+  return SPH_RESULT_OK;
 }
 
 SamplerImpl::SamplerImpl()
@@ -362,6 +362,11 @@ RenderPassImpl::RenderPassImpl()
 
 RenderPassImpl::~RenderPassImpl()
 {
+}
+
+ISPHFactory * CreateFactory()
+{
+  return new FactoryImpl;
 }
 
 } // end vulkan

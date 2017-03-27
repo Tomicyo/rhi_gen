@@ -1,33 +1,26 @@
-#include  "implement.h"
+#include "implement_vk.h"
+#include "implement_js_binding.h"
 #include "gtest/gtest.h"
-
-namespace vulkan
-{
-  INXTFactory * CreateFactory()
-  {
-    return new FactoryImpl;
-  }
-}
 
 using namespace vulkan;
 
 TEST(CreateFactory, VULKANFactory) 
 {
-	INXTFactory* factory = CreateFactory();
+	ISPHFactory* factory = CreateFactory();
 	ASSERT_TRUE(factory);
 	ASSERT_EQ(factory->Release(), 0);
 }
 
 TEST(CreateDevice, VULKANFactory) 
 {
-	INXTFactory* pFactory = CreateFactory();
+	ISPHFactory* pFactory = CreateFactory();
 	// create device
 	uint32_t deviceCount = 0;
 	pFactory->EnumDevice(&deviceCount, nullptr);
 	ASSERT_GT(deviceCount, 0);
-	INXTDevice ** ppDevice = new INXTDevice*[deviceCount];
+	ISPHDevice ** ppDevice = new ISPHDevice*[deviceCount];
 	pFactory->EnumDevice(&deviceCount, ppDevice);
-	INXTDevice * pCurDev = ppDevice[0];
+	ISPHDevice * pCurDev = ppDevice[0];
 	ASSERT_TRUE(pCurDev);
 	ASSERT_EQ(pCurDev->Release(), 0);  // exchange with next call ?
 	ASSERT_EQ(pFactory->Release(), 0);
@@ -35,9 +28,9 @@ TEST(CreateDevice, VULKANFactory)
 
 TEST(CreateSwapchain, VULKANFactory) 
 {
-	INXTFactory* pFactory = CreateFactory();
+	ISPHFactory* pFactory = CreateFactory();
 	// create swapchain
-	INXTSwapChain * pSwapChain = nullptr;
+	ISPHSwapChain * pSwapChain = nullptr;
 	pFactory->CreateSwapchain(nullptr, nullptr, &pSwapChain);
 	ASSERT_EQ(pFactory->Release(), 1);
 	ASSERT_TRUE(pSwapChain);
@@ -46,58 +39,66 @@ TEST(CreateSwapchain, VULKANFactory)
 
 TEST(GetDesc, VULKANDevice)
 {
-  INXTFactory* pFactory = CreateFactory();
+  ISPHFactory* pFactory = CreateFactory();
   // create device
   uint32_t deviceCount = 0;
   pFactory->EnumDevice(&deviceCount, nullptr);
   ASSERT_GT(deviceCount, 0);
-  INXTDevice ** ppDevice = new INXTDevice*[deviceCount];
+  ISPHDevice ** ppDevice = new ISPHDevice*[deviceCount];
   pFactory->EnumDevice(&deviceCount, ppDevice);
-  INXTDevice * pCurDev = ppDevice[0];
+  ISPHDevice * pCurDev = ppDevice[0];
   pFactory->Release();
-  nxtDeviceDesc desc = {0, nullptr};
+  sphDeviceDesc desc = {0, nullptr};
   pCurDev->GetDesc(&desc);
   printf("Device: %s\n", desc.vendorName);
   pCurDev->Release();
 }
 
+char ** myArgv;
+
+TEST(JS_Binding, V8)
+{
+  ASSERT_EQ(v8_js_binding_test(myArgv[0]), 0);
+}
+
 int main(int argc, char **argv)
 {
 	::testing::InitGoogleTest(&argc, argv);
-	//INXTFactory * pFactory = CreateFactory();
+  myArgv = argv;
+	//ISPHFactory * pFactory = CreateFactory();
 
 	//// create swapchain
-	//INXTSwapChain * pSwapChain = nullptr;
+	//ISPHSwapChain * pSwapChain = nullptr;
 	//pFactory->CreateSwapchain(nullptr, nullptr, &pSwapChain);
 
 	//// create device
 	//uint32_t deviceCount = 0;
 	//pFactory->EnumDevice(&deviceCount, nullptr);
-	//INXTDevice ** ppDevice = new INXTDevice*[deviceCount];
+	//ISPHDevice ** ppDevice = new ISPHDevice*[deviceCount];
 	//pFactory->EnumDevice(&deviceCount, ppDevice);
-	//INXTDevice * pCurDev = ppDevice[0];
+	//ISPHDevice * pCurDev = ppDevice[0];
 
 	//// create vertex buffer
-	//INXTBuffer * pVBO = nullptr;
+	//ISPHBuffer * pVBO = nullptr;
 	//pCurDev->CreateBuffer(nullptr, &pVBO);
-	//INXTBufferView * pVBV = nullptr;
+	//ISPHBufferView * pVBV = nullptr;
 	//pCurDev->CreateBufferView(nullptr, pVBO, &pVBV);
 
 	//// create resource bindings
-	//INXTPipelineLayout * pPL = nullptr;
+	//ISPHPipelineLayout * pPL = nullptr;
 	//pCurDev->CreatePipelineLayout(&pPL);
 
-	//INXTBindingGroup * pBindingGroup = nullptr;
+	//ISPHBindingGroup * pBindingGroup = nullptr;
 
-	//INXTPipelineState * pPS = nullptr;
+	//ISPHPipelineState * pPS = nullptr;
 	//pCurDev->CreatePipelineState(nullptr, &pPS);
 
 	//// create command queue
-	//INXTCommandQueue * pCmdQueue = nullptr;
-	//pCurDev->CreateCommandQueue(NXT_COMMAND_QUEUE_TYPE_GRAPHICS, &pCmdQueue);
+	//ISPHCommandQueue * pCmdQueue = nullptr;
+	//pCurDev->CreateCommandQueue(SPH_COMMAND_QUEUE_TYPE_GRAPHICS, &pCmdQueue);
 
 	//// obtain command buffer
-	//INXTCommandBuffer * pCmdBuf = pCmdQueue->CommandBuffer();
+	//ISPHCommandBuffer * pCmdBuf = pCmdQueue->CommandBuffer();
 	//pCmdBuf->Begin();
 	//pCmdBuf->BeginRenderPass(nullptr);
 	//pCmdBuf->SetPipelineLayout(pPL);

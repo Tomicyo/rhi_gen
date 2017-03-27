@@ -51,6 +51,7 @@ class TemplateGenerator(object):
 
             self.__header__ = open(outpath, 'w')
             self.__header__.write(license_tsinstudio)
+            self.__header__.write('\n#ifndef __{0}__\n#define __{0}__\n' .format( headername.upper()) )
             for include in import_names:
                 self.__header__.write('#include \"%s.h\"\n' % include)
 
@@ -96,6 +97,8 @@ class TemplateGenerator(object):
                 self.__header__.write('\n} // namespace %s' % self.ns)
             else:
                 self.__header__.write('\n#endif // __cplusplus\n')
+
+            self.__header__.write('\n#endif // __%s__\n' % headername.upper())
                                     
         else:
             print('Error')
@@ -175,7 +178,7 @@ class TemplateGenerator(object):
         if real_param_t in self.content:
             param_t_name = self.content[real_param_t]
             real_param_t_name = NameUtil[param_t_name](self.ns if ns==None else ns, real_param_t)
-            print(real_param_t_name, re_param.match(type_name).group())
+            #print(real_param_t_name, re_param.match(type_name).group())
             r_type_name = re_param.sub(r'\1 ' + real_param_t_name, type_name)
         if r_type_name[0:1] == ' ':
             r_type_name = r_type_name[1:]
@@ -255,9 +258,11 @@ class TemplateGenerator(object):
                 member_params_str.append(' '.join([member_type, '_' + member_name]))
                 init_list_str.append('{0}(_{0})'.format(member_name))
 
-        self.__header__.write('#if __cplusplus\n')        
+        '''
+        self.__header__.write('#if __cplusplus\n')
+        # write constructor
         self.__header__.write('  {0}({1})\n  : {2}\n  {{}}\n'.format(r_struct_name, ', '.join(member_params_str), '\n  , '.join(init_list_str)))
-
+        # write member function
         for setter in member_setters:
             if ',' in setter['param'][1]:
                 member_names = setter['param'][1].split(',')
@@ -276,6 +281,7 @@ class TemplateGenerator(object):
                     format(r_struct_name, setter['func'], setter['param'][0], setter['param'][1]))
         
         self.__header__.write('#endif\n')
+        '''
         self.__header__.write('};\n')
 
     def isBasicType(self, t):

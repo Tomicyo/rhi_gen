@@ -150,26 +150,35 @@ protype:
         members:
             - name: fillMode
               type: fill mode
+              default: Solid
             - name: cullMode
               type: cull mode
+              default: Back
             - name: frontCCW
               type: bool
+              default: true
             - name: depthBias
               type: int32_t
+              default: 0
             - name: multiSampleEnable
               type: bool
+              default: false
 
     - blend state:
         type: struct
         members:
             - name: enable
               type: bool
+              default: false
             - name: srcColorBlend
               type: blend type
+              default: Src Color
             - name: destColorBlend
               type: blend type
+              default: Dest Color
             - name: colorBlendOp
               type: blend operation
+              default: Add
             - name: srcAlphaBlend
               type: blend type
             - name: destAlphaBlend
@@ -178,18 +187,23 @@ protype:
               type: blend operation
             - name: colorWriteMask
               type: uint32_t
+              default: 0xF
 
     - depth stencil state:
         type: struct
         members:
             - name: depthEnable
               type: bool
+              default: true
             - name: depthWriteMask
               type: depth write mask
+              default: All
             - name: depthFunc
               type: comparison function
+              default: Greater
             - name: stencilEnable
               type: bool
+              default: true
             - name: frontFace
               type: depth stencil op
             - name: backFace
@@ -215,18 +229,23 @@ protype:
         members:
             - name: maxAllocation
               type: uint64_t
+              default: 0
             - name: vendorName
               type: char *
+              default: nullptr
 
     - filter:
         type: struct
         members:
             - name: minFilter
               type: filter mode
+              default: Linear
             - name: magFilter
               type: filter mode
+              default: Linear
             - name: mipMapFilter
               type: filter mode
+              default: Linear
 
     - sampler desc:
         type: struct
@@ -236,6 +255,7 @@ protype:
               type: filter
             - name: U,V,W
               type: address mode
+              default: Wrap
             - name: mipLodBias
               type: float32
             - name: maxAnistropy
@@ -244,8 +264,10 @@ protype:
               type: comparison function
             - name: minLod
               type: float32
+              default: 0
             - name: maxLod
               type: float32
+              default: 0x7FFF
 
     - buffer desc:
         type: struct
