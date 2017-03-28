@@ -2,13 +2,20 @@
 #include "implement_vk.h"
 #include "v8.h"
 #include "libplatform/libplatform.h"
+#include <fstream>
+#include <sstream>
+
+#include <app.h>
 
 using namespace v8;
+using namespace std;
 using namespace vulkan;
+
+Global<ObjectTemplate> gDeviceTempl;
+Global<ObjectTemplate> gFactoryTempl;
 
 static void vk_device_getDesc(const FunctionCallbackInfo<v8::Value>& args)
 {
-  HandleScope handle_scope(args.GetIsolate());
   Local<External> device = Local<External>::Cast(args.Holder()->GetInternalField(0));
   ISPHDevice* ptr = (ISPHDevice*)device->Value();
   sphDeviceDesc desc = {};
@@ -16,9 +23,13 @@ static void vk_device_getDesc(const FunctionCallbackInfo<v8::Value>& args)
   args.GetReturnValue().Set(String::NewFromUtf8(args.GetIsolate(), desc.vendorName));
 }
 
+static void vk_factory_createSwapchain(const FunctionCallbackInfo<v8::Value>& args)
+{
+
+}
+
 static void vk_factory_enumDevices(const FunctionCallbackInfo<v8::Value>& args)
 {
-  HandleScope handle_scope(args.GetIsolate());
   Local<External> factory = Local<External>::Cast(args.Holder()->GetInternalField(0));
   ISPHFactory* ptr = (ISPHFactory*)factory->Value();
   uint32_t count = 0;
@@ -28,10 +39,15 @@ static void vk_factory_enumDevices(const FunctionCallbackInfo<v8::Value>& args)
 
   auto deviceArray = Array::New(args.GetIsolate(), count);
 
-  Local<ObjectTemplate> deviceTempl = ObjectTemplate::New(args.GetIsolate());
-  deviceTempl->SetInternalFieldCount(1);
-  deviceTempl->Set(String::NewFromUtf8(args.GetIsolate(), "getDesc"),
-    FunctionTemplate::New(args.GetIsolate(), vk_device_getDesc));
+  if (gDeviceTempl.IsEmpty())
+  {
+    Local<ObjectTemplate> deviceTempl = ObjectTemplate::New(args.GetIsolate());
+    deviceTempl->SetInternalFieldCount(1);
+    deviceTempl->Set(String::NewFromUtf8(args.GetIsolate(), "getDesc"),
+      FunctionTemplate::New(args.GetIsolate(), vk_device_getDesc));
+    gDeviceTempl.Reset(args.GetIsolate(), deviceTempl);
+  }
+  Local<ObjectTemplate> deviceTempl = Local<ObjectTemplate>::New(args.GetIsolate(), gDeviceTempl);
 
   for (uint32_t i = 0; i < count; i++)
   {
@@ -47,15 +63,20 @@ static void vk_factory_enumDevices(const FunctionCallbackInfo<v8::Value>& args)
 
 static void vk_createFactory(const FunctionCallbackInfo<v8::Value>& args) 
 {
-  HandleScope handle_scope(args.GetIsolate());
+  if (gFactoryTempl.IsEmpty()) 
+  {
+    Local<ObjectTemplate> factoryTempl = ObjectTemplate::New(args.GetIsolate());
+    factoryTempl->SetInternalFieldCount(1);
+    factoryTempl->Set(String::NewFromUtf8(args.GetIsolate(), "enumDevices"),
+      FunctionTemplate::New(args.GetIsolate(), vk_factory_enumDevices));
+    factoryTempl->Set(String::NewFromUtf8(args.GetIsolate(), "createSwapChain"),
+      FunctionTemplate::New(args.GetIsolate(), vk_factory_createSwapchain));
+    gFactoryTempl.Reset(args.GetIsolate(), factoryTempl);
+  }
 
-  Local<ObjectTemplate> factoryTempl = ObjectTemplate::New(args.GetIsolate());
-  factoryTempl->SetInternalFieldCount(1);
-  factoryTempl->Set(String::NewFromUtf8(args.GetIsolate(), "enumDevices"), 
-    FunctionTemplate::New(args.GetIsolate(), vk_factory_enumDevices));
-
-  Local<Object> result =
-    factoryTempl->NewInstance(args.GetIsolate()->GetCurrentContext()).ToLocalChecked();
+  Local<ObjectTemplate> factoryTempl = Local<ObjectTemplate>::New(args.GetIsolate(), gFactoryTempl);
+  Local<Object> result = factoryTempl->NewInstance(args.GetIsolate()->GetCurrentContext())
+    .ToLocalChecked();
 
   ISPHFactory* factory = CreateFactory();
   Local<External> factory_ptr = External::New(args.GetIsolate(), factory);
@@ -64,52 +85,56 @@ static void vk_createFactory(const FunctionCallbackInfo<v8::Value>& args)
   args.GetReturnValue().Set(result);
 }
 
-int v8_js_binding_test(const char * pth)
+int v8_js_binding_test(int argc, char ** argv)
 {
-  V8::InitializeICUDefaultLocation(pth);
-  V8::InitializeExternalStartupData(pth);
+  V8::InitializeICUDefaultLocation(argv[0]);
+  V8::InitializeExternalStartupData(argv[0]);
   Platform* platform = platform::CreateDefaultPlatform();
   V8::InitializePlatform(platform);
   V8::Initialize();
 
-  // Create a new Isolate and make it the current one.
   Isolate::CreateParams create_params;
   create_params.array_buffer_allocator =
     v8::ArrayBuffer::Allocator::NewDefaultAllocator();
   Isolate* isolate = Isolate::New(create_params);
   {
     Isolate::Scope isolate_scope(isolate);
-
-    // Create a stack-allocated handle scope.
     HandleScope handle_scope(isolate);
 
-    //
     auto global_template_ = ObjectTemplate::New(isolate);
-    global_template_->Set(String::NewFromUtf8(isolate, "createFactory"), FunctionTemplate::New(isolate, vk_createFactory));
-
-    // Create a new context.
+    auto sap_template = ObjectTemplate::New(isolate);
+    sap_template->Set(String::NewFromUtf8(isolate, "createFactory"), FunctionTemplate::New(isolate, vk_createFactory));
+    global_template_->Set(String::NewFromUtf8(isolate, "sappheiros"), sap_template);
+    global_template_->Set(String::NewFromUtf8(isolate, "createApp"), FunctionTemplate::New(isolate, v8::app_js_create));
+    
     Local<Context> context = Context::New(isolate, nullptr, global_template_);
-
-    // Enter the context for compiling and running the hello world script.
     Context::Scope context_scope(context);
 
-    // Create a string containing the JavaScript source code.
+    ifstream script_file(argv[1]);
+    std::stringstream buffer;
+    buffer << script_file.rdbuf();
+    std::string contents(buffer.str());
     Local<String> source =
-      String::NewFromUtf8(isolate, "var factory = createFactory();\nvar devices = factory.enumDevices();\ndevices[0].getDesc();",
+      String::NewFromUtf8(isolate, contents.c_str(),
+        NewStringType::kNormal).ToLocalChecked();
+    Local<String> source_origin =
+      String::NewFromUtf8(isolate, argv[1],
         NewStringType::kNormal).ToLocalChecked();
 
-    // Compile the source code.
-    Local<Script> script = Script::Compile(context, source).ToLocalChecked();
+    Local<Script> script = Script::Compile(context, source, new ScriptOrigin(source_origin))
+      .ToLocalChecked();
 
-    // Run the script to get the result.
     Local<Value> result = script->Run(context).ToLocalChecked();
 
-    // Convert the result to an UTF8 string and print it.
-    String::Utf8Value utf8(result);
-    printf("%s\n", *utf8);
+    if (result->IsString())
+    {
+      String::Utf8Value utf8(result);
+      printf("%s\n", *utf8);
+    }
   }
+  gDeviceTempl.Reset();
+  gFactoryTempl.Reset();
 
-  // Dispose the isolate and tear down V8.
   isolate->Dispose();
   V8::Dispose();
   V8::ShutdownPlatform();

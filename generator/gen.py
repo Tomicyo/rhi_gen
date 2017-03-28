@@ -178,8 +178,9 @@ class TemplateGenerator(object):
         if real_param_t in self.content:
             param_t_name = self.content[real_param_t]
             real_param_t_name = NameUtil[param_t_name](self.ns if ns==None else ns, real_param_t)
-            #print(real_param_t_name, re_param.match(type_name).group())
-            r_type_name = re_param.sub(r'\1 ' + real_param_t_name, type_name)
+            #r_type_name = re_param.sub(r'\1 ' + real_param_t_name, type_name) python 3.5
+            r_type_name = re.sub(r'\s*(?P<const>(const\s+)?)(?P<word>[\w\s]*)(?P<pointer>[\*\s]*)', '\g<const>'+ real_param_t_name + ' \g<pointer>', type_name)
+
         if r_type_name[0:1] == ' ':
             r_type_name = r_type_name[1:]
         return r_type_name
@@ -386,8 +387,6 @@ class TemplateGenerator(object):
                                 default_ret_statement = '  return ' + e_val + ';\n'
                         elif ret.endswith('*'):
                             default_ret_statement = '  return nullptr;\n'
-                        #else:
-                        #    print(ret)
 
                 self.__source__.write('\n{0} {1}::{2}({3})\n{{\n{4}}}\n'.format(r_ret, class_name, real_func_name, ', '.join(param_list), default_ret_statement))
 

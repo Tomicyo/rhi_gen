@@ -54,16 +54,18 @@ TEST(GetDesc, VULKANDevice)
   pCurDev->Release();
 }
 
+int myArgc;
 char ** myArgv;
 
 TEST(JS_Binding, V8)
 {
-  ASSERT_EQ(v8_js_binding_test(myArgv[0]), 0);
+  ASSERT_EQ(v8_js_binding_test(myArgc, myArgv), 0);
 }
 
 int main(int argc, char **argv)
 {
 	::testing::InitGoogleTest(&argc, argv);
+  myArgc = argc;
   myArgv = argv;
 	//ISPHFactory * pFactory = CreateFactory();
 
