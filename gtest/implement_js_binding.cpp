@@ -11,8 +11,15 @@ using namespace v8;
 using namespace std;
 using namespace vulkan;
 
+
+Global<ObjectTemplate> gCommandQueueTempl;
 Global<ObjectTemplate> gDeviceTempl;
 Global<ObjectTemplate> gFactoryTempl;
+
+static void vk_commandQueue_commandBuffer(const FunctionCallbackInfo<v8::Value>& args)
+{
+
+}
 
 static void vk_device_getDesc(const FunctionCallbackInfo<v8::Value>& args)
 {
@@ -23,9 +30,37 @@ static void vk_device_getDesc(const FunctionCallbackInfo<v8::Value>& args)
   args.GetReturnValue().Set(String::NewFromUtf8(args.GetIsolate(), desc.vendorName));
 }
 
+static void vk_device_createPipelineLayout(const FunctionCallbackInfo<v8::Value>& args)
+{
+}
+
+static void vk_device_createCommandQueue(const FunctionCallbackInfo<v8::Value>& args)
+{
+  Local<External> device = Local<External>::Cast(args.Holder()->GetInternalField(0));
+  ISPHDevice* ptr = (ISPHDevice*)device->Value();
+  ISPHCommandQueue* pCmdQueue = nullptr;
+  ptr->CreateCommandQueue(SPH_COMMAND_QUEUE_TYPE_GRAPHICS, &pCmdQueue);
+
+  if (gCommandQueueTempl.IsEmpty())
+  {
+    Local<ObjectTemplate> cmdQueueTempl = ObjectTemplate::New(args.GetIsolate());
+    cmdQueueTempl->SetInternalFieldCount(0);
+    cmdQueueTempl->Set(String::NewFromUtf8(args.GetIsolate(), "commandBuffer"),
+      FunctionTemplate::New(args.GetIsolate(), vk_commandQueue_commandBuffer));
+    gCommandQueueTempl.Reset(args.GetIsolate(), cmdQueueTempl);
+  }
+  Local<ObjectTemplate> cmdQueueTempl = Local<ObjectTemplate>::New(args.GetIsolate(), gCommandQueueTempl);
+  Local<Object> cmdQueue = cmdQueueTempl->NewInstance();
+  Local<External> cmdQueuePtr = External::New(args.GetIsolate(), pCmdQueue);
+  cmdQueue->SetInternalField(0, cmdQueuePtr);
+  args.GetReturnValue().Set(cmdQueue);
+}
+
 static void vk_factory_createSwapchain(const FunctionCallbackInfo<v8::Value>& args)
 {
-
+  Local<External> factory = Local<External>::Cast(args.Holder()->GetInternalField(0));
+  ISPHFactory* ptr = (ISPHFactory*)factory->Value();
+  ptr->CreateSwapchain(nullptr, nullptr, nullptr);
 }
 
 static void vk_factory_enumDevices(const FunctionCallbackInfo<v8::Value>& args)
@@ -44,6 +79,22 @@ static void vk_factory_enumDevices(const FunctionCallbackInfo<v8::Value>& args)
     Local<ObjectTemplate> deviceTempl = ObjectTemplate::New(args.GetIsolate());
     deviceTempl->SetInternalFieldCount(1);
     deviceTempl->Set(String::NewFromUtf8(args.GetIsolate(), "getDesc"),
+      FunctionTemplate::New(args.GetIsolate(), vk_device_getDesc));
+    deviceTempl->Set(String::NewFromUtf8(args.GetIsolate(), "createCommandQueue"),
+      FunctionTemplate::New(args.GetIsolate(), vk_device_createCommandQueue));
+    deviceTempl->Set(String::NewFromUtf8(args.GetIsolate(), "createPipelineLayout"),
+      FunctionTemplate::New(args.GetIsolate(), vk_device_createPipelineLayout));
+    deviceTempl->Set(String::NewFromUtf8(args.GetIsolate(), "createRenderPass"),
+      FunctionTemplate::New(args.GetIsolate(), vk_device_getDesc));
+    deviceTempl->Set(String::NewFromUtf8(args.GetIsolate(), "createRenderTarget"),
+      FunctionTemplate::New(args.GetIsolate(), vk_device_getDesc));
+    deviceTempl->Set(String::NewFromUtf8(args.GetIsolate(), "createSampler"),
+      FunctionTemplate::New(args.GetIsolate(), vk_device_getDesc));
+    deviceTempl->Set(String::NewFromUtf8(args.GetIsolate(), "createBuffer"),
+      FunctionTemplate::New(args.GetIsolate(), vk_device_getDesc));
+    deviceTempl->Set(String::NewFromUtf8(args.GetIsolate(), "createTexture"),
+      FunctionTemplate::New(args.GetIsolate(), vk_device_getDesc));
+    deviceTempl->Set(String::NewFromUtf8(args.GetIsolate(), "waitIdle"),
       FunctionTemplate::New(args.GetIsolate(), vk_device_getDesc));
     gDeviceTempl.Reset(args.GetIsolate(), deviceTempl);
   }
@@ -132,6 +183,7 @@ int v8_js_binding_test(int argc, char ** argv)
       printf("%s\n", *utf8);
     }
   }
+  gCommandQueueTempl.Reset();
   gDeviceTempl.Reset();
   gFactoryTempl.Reset();
 
