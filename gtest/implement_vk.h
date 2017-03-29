@@ -71,7 +71,7 @@ class FactoryImpl : public TObj<VkInstance, ISPHFactory>
 public:
   using This = TObj<VkInstance, ISPHFactory>;
   sphResult EnumDevice(uint32_t * count, ISPHDevice ** ppDevice) override;
-  sphResult CreateSwapchain(sphSwapChainDesc * desc, void * pWindow, ISPHSwapChain ** pSwapchain) override;
+  sphResult CreateSwapchain(const sphSwapChainDesc * desc, ISPHCommandQueue * pCommandQueue, void * pWindow, ISPHSwapChain ** pSwapchain) override;
 private:
   friend ISPHFactory * CreateFactory();
   FactoryImpl();

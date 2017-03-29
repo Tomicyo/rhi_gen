@@ -20,6 +20,8 @@ public:
 
   void Run();
 
+  void* Handle() const { return hWnd; }
+
 private:
   void * hWnd;
 };

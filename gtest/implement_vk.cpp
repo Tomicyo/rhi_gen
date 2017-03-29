@@ -20,8 +20,12 @@ sphResult FactoryImpl::EnumDevice(uint32_t * count, ISPHDevice ** ppDevice)
   return SPH_RESULT_OK;
 }
 
-sphResult FactoryImpl::CreateSwapchain(sphSwapChainDesc * desc, void * pWindow, ISPHSwapChain ** pSwapchain)
+sphResult FactoryImpl::CreateSwapchain(const sphSwapChainDesc * desc, ISPHCommandQueue * pCommandQueue, void * pWindow, ISPHSwapChain ** pSwapchain)
 {
+  if (!pSwapchain)
+  {
+    pSwapchain = new ISPHSwapChain*;
+  }
   *pSwapchain = new SwapChainImpl(this);
   return SPH_RESULT_OK;
 }

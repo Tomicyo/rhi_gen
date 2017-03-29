@@ -31,7 +31,7 @@ TEST(CreateSwapchain, VULKANFactory)
 	ISPHFactory* pFactory = CreateFactory();
 	// create swapchain
 	ISPHSwapChain * pSwapChain = nullptr;
-	pFactory->CreateSwapchain(nullptr, nullptr, &pSwapChain);
+	pFactory->CreateSwapchain(nullptr, nullptr, nullptr, &pSwapChain);
 	ASSERT_EQ(pFactory->Release(), 1);
 	ASSERT_TRUE(pSwapChain);
 	ASSERT_EQ(pSwapChain->Release(), 0);

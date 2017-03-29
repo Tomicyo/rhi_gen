@@ -44,7 +44,7 @@ static void vk_device_createCommandQueue(const FunctionCallbackInfo<v8::Value>& 
   if (gCommandQueueTempl.IsEmpty())
   {
     Local<ObjectTemplate> cmdQueueTempl = ObjectTemplate::New(args.GetIsolate());
-    cmdQueueTempl->SetInternalFieldCount(0);
+    cmdQueueTempl->SetInternalFieldCount(1);
     cmdQueueTempl->Set(String::NewFromUtf8(args.GetIsolate(), "commandBuffer"),
       FunctionTemplate::New(args.GetIsolate(), vk_commandQueue_commandBuffer));
     gCommandQueueTempl.Reset(args.GetIsolate(), cmdQueueTempl);
@@ -60,7 +60,23 @@ static void vk_factory_createSwapchain(const FunctionCallbackInfo<v8::Value>& ar
 {
   Local<External> factory = Local<External>::Cast(args.Holder()->GetInternalField(0));
   ISPHFactory* ptr = (ISPHFactory*)factory->Value();
-  ptr->CreateSwapchain(nullptr, nullptr, nullptr);
+
+  sphSwapChainDesc swapchainDesc = {};
+  auto desc = args[0]->ToObject();
+  swapchainDesc.width = desc->Get(String::NewFromUtf8(args.GetIsolate(), "width"))->Uint32Value();
+  swapchainDesc.height = desc->Get(String::NewFromUtf8(args.GetIsolate(), "height"))->Uint32Value();
+  swapchainDesc.pixelFormat = (sphPixelFormat)desc->Get(String::NewFromUtf8(args.GetIsolate(), "format"))->Uint32Value();
+  
+  Local<External> pCmdQueue = Local<External>::Cast(args[1]->ToObject()->GetInternalField(0));
+  ISPHCommandQueue* pQueue = (ISPHCommandQueue*)pCmdQueue->Value();
+
+  Local<External> app = Local<External>::Cast(args[2]->ToObject()->GetInternalField(0));
+  App* pApp = (App*)app->Value();
+  void* hWnd = pApp->Handle();
+
+  ISPHSwapChain * pSwapChain = nullptr;
+  ptr->CreateSwapchain(&swapchainDesc, pQueue, hWnd, &pSwapChain);
+
 }
 
 static void vk_factory_enumDevices(const FunctionCallbackInfo<v8::Value>& args)
@@ -155,6 +171,7 @@ int v8_js_binding_test(int argc, char ** argv)
     auto global_template_ = ObjectTemplate::New(isolate);
     auto sap_template = ObjectTemplate::New(isolate);
     sap_template->Set(String::NewFromUtf8(isolate, "createFactory"), FunctionTemplate::New(isolate, vk_createFactory));
+    sap_template->Set(String::NewFromUtf8(isolate, "PF_RGBA8UNorm"), Integer::New(isolate, SPH_PIXEL_FORMAT_RGBA8UNORM));
     global_template_->Set(String::NewFromUtf8(isolate, "sappheiros"), sap_template);
     global_template_->Set(String::NewFromUtf8(isolate, "createApp"), FunctionTemplate::New(isolate, v8::app_js_create));
     

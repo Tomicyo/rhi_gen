@@ -8,15 +8,15 @@ app = createApp({
     height: 1080
 });
 
+// create command queue
+var commandQueue = device.createCommandQueue(sappheiros.COMMAND_QUEUE_TYPE_GRAPHICS);
+
 // create swap chain
 var swapchain = factory.createSwapChain({
     width: 1920,
     height: 1080,
     format: sappheiros.PF_RGBA8UNorm
-}, app);
-
-// create command queue
-var commandQueue = device.createCommandQueue(sappheiros.COMMAND_QUEUE_TYPE_GRAPHICS);
+}, commandQueue, app);
 
 app.run(() => {
     // keep drawing

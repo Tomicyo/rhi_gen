@@ -468,7 +468,9 @@ protype:
             - create swapchain:
                 params:
                     - name: desc
-                      type: swap chain desc *
+                      type: const swap chain desc *
+                    - name: pCommandQueue
+                      type: command queue *
                     - name: pWindow
                       type: void *
                     - name: pSwapchain
