@@ -1,16 +1,15 @@
 #include "implement_js_binding.h"
-#include "implement_vk.h"
-#include "v8.h"
-#include "libplatform/libplatform.h"
+#include <implement/implement_vk.h>
+#include <app/app.h>
+#include <js_app/js_app.h>
+#include <v8.h>
+#include <libplatform/libplatform.h>
 #include <fstream>
 #include <sstream>
-
-#include <app.h>
 
 using namespace v8;
 using namespace std;
 using namespace vulkan;
-
 
 Global<ObjectTemplate> gCommandQueueTempl;
 Global<ObjectTemplate> gDeviceTempl;

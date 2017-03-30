@@ -1,8 +1,7 @@
-#include "app.h"
-
 #if _WIN32
 #include <Windows.h>
 #endif
+#include "app.h"
 
 #if _WIN32
 static LRESULT CALLBACK WindowProc(HWND hwnd, UINT32 msg, WPARAM wParam, LPARAM lParam)

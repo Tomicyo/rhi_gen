@@ -50,19 +50,29 @@ protype:
       inherit: sph::pipeline layout
       instance: VkPipelineLayout
 
-  - binding group impl:
+  - binding table impl:
       type: class
-      inherit: sph::binding group
+      inherit: sph::binding table
 
   - buffer impl:
       type: class
       inherit: sph::buffer
       instance: VkBuffer
 
+  - buffer view impl:
+      type: class
+      inherit: sph::buffer view
+      instance: VkBufferView
+
   - texture impl:
       type: class
       inherit: sph::texture
       instance: VkImage
+
+  - texture view impl:
+      type: class
+      inherit: sph::texture view
+      instance: VkImageView
 
   - sampler impl:
       type: class

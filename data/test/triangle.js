@@ -3,7 +3,7 @@ var devices = factory.enumDevices();
 var device = devices[0];
 
 app = createApp({
-    title: 'V8 Test',
+    title: 'Triangle',
     width: 1920,
     height: 1080
 });

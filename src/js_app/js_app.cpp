@@ -1,10 +1,11 @@
-#include "app.h"
+#include <app/app.h>
+#include "js_app.h"
 
 namespace v8
 {
   void app_js_run(const FunctionCallbackInfo<v8::Value>& args);
 
-  API void app_js_create(const FunctionCallbackInfo<v8::Value>& args)
+  void app_js_create(const FunctionCallbackInfo<v8::Value>& args)
   {
     if (args.Length() == 0 || !args[0]->IsObject())
     {

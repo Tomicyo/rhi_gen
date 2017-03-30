@@ -6,6 +6,7 @@ protype:
         enums:
             - Ok
             - Failed
+            - Param Error
             - Device Not Found
 
     - pipeline type:
@@ -373,6 +374,50 @@ protype:
             - name: primitiveTopology
               type: primitive type
 
+    - binding type:
+        type: enum
+        enums:
+          - Uniform Buffer
+          - Sampler
+          - Sampled Image
+          - Storage Buffer
+
+    - shader stage bit:
+        type: enum
+        bitmask: true
+        enums:
+          - Vertex
+          - Fragment
+          - Compute
+          - Geometry
+          - TessailationEval
+          - TessailationControl
+
+    - pipeline layout desc:
+        type: struct
+        comment: Description of Pipeline Layout (How to layout bindings)
+        members:
+          - name: visibility
+            type: shader stage bit
+          - name: bindingType
+            type: binding type
+          - name: slot
+            type: uint32_t
+          - name: count
+            type: uint32_t
+
+    - render pass desc:
+        type: struct
+        comment: Description of Render Pass
+        members:
+          -
+  
+    - render target desc:
+        type: struct
+        comment: Description of Render Target
+        members:
+          -
+
     - draw indexed instanced desc:
         type: struct
         members:
@@ -451,6 +496,13 @@ protype:
         inherit: ref obj
         comment: Present drawables
         functions:
+            - get texture:
+                params:
+                  - name: ppTexture
+                    type: texture **
+                  - name: index
+                    type: uint32_t
+                return: result
             - present
 
     - factory:
@@ -477,6 +529,10 @@ protype:
                       type: swap chain **
                 return: result
 
+    - render target:
+        type: interface
+        inherit: ref obj
+
     - render pass:
         type: interface
         inherit: ref obj
@@ -497,7 +553,7 @@ protype:
         type: interface
         inherit: ref obj
 
-    - binding group:
+    - binding table:
         type: interface
         inherit: ref obj
         comment: Shader binding table
@@ -600,19 +656,40 @@ protype:
                 return: result
             - create pipeline layout:
                 params:
+                    - name: pPipelineLayoutDesc
+                      type: const pipeline layout desc *
                     - name: ppPipelineLayout
                       type: pipeline layout **
+                return: result
+            - create binding table:
+                params:
+                    - name: pPipelineLayout
+                      type: pipeline layout *
+                    - name: ppBindingTable
+                      type: binding table **
                 return: result
             - create pipeline state:
                 params:
                     - name: pPipelineDesc
                       type: const pipeline state desc *
+                    - name: pPipelineLayout
+                      type: pipeline layout *
                     - name: pPipelineState
                       type: pipeline state **
                 return: result
             - create render pass:
+                params:
+                  - name: desc
+                    type: const render pass desc *
+                  - name: ppRenderpass
+                    type: render pass **
                 return: result
             - create render target:
+                params:
+                  - name: desc
+                    type: const render target desc *
+                  - name: ppRenderTarget
+                    type: render target **
                 return: result
             - create sampler:
                 params:
@@ -700,10 +777,10 @@ protype:
                 params:
                     - name: pPipelineLayout
                       type: pipeline layout *
-            - set binding group:
+            - set binding table:
                 params:
-                    - name: pBindingGroup
-                      type: binding group *
+                    - name: pBindingTable
+                      type: binding table *
             - set index buffer:
                     - name: pIndexBuffer
                       type: buffer *

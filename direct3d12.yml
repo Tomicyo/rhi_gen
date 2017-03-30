@@ -39,9 +39,9 @@ protype:
       type: class
       inherit: sph::pipeline layout
 
-  - binding group impl:
+  - binding table impl:
       type: class
-      inherit: sph::binding group
+      inherit: sph::binding table
 
   - buffer impl:
       type: class

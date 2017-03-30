@@ -1,0 +1,5 @@
+set(TARGET js_app)
+add_library(${TARGET} SHARED js_app.h js_app.cpp)
+target_include_directories(${TARGET} PRIVATE ${V8_INCLUDE_DIR})
+target_compile_definitions(${TARGET} PRIVATE -DBUILD_JS_APP_LIB=1)
+target_link_libraries(${TARGET} ${V8_LIBRARIES} app)
