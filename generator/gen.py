@@ -1,5 +1,5 @@
 from generator.loader import ProtypeLoader
-from generator.name import NameUtil, make_enum_name, make_enum_value, make_struct_name, make_name_XXX_XXX
+from generator.name import NameUtil, TypeRegEx, make_enum_name, make_enum_value, make_struct_name, make_name_XXX_XXX
 import re, os
 
 re_param = re.compile('(const)*\s*(?P<name>[\w\s]*\w)', re.I)
@@ -179,7 +179,7 @@ class TemplateGenerator(object):
             param_t_name = self.content[real_param_t]
             real_param_t_name = NameUtil[param_t_name](self.ns if ns==None else ns, real_param_t)
             #r_type_name = re_param.sub(r'\1 ' + real_param_t_name, type_name) python 3.5
-            r_type_name = re.sub(r'\s*(?P<const>(const\s+)?)(?P<word>[\w\s]*)(?P<pointer>[\*\s]*)', '\g<const>'+ real_param_t_name + ' \g<pointer>', type_name)
+            r_type_name = TypeRegEx.sub('\g<const>'+ real_param_t_name + '\g<pointer>', type_name)
 
         if r_type_name[0:1] == ' ':
             r_type_name = r_type_name[1:]

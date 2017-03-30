@@ -1,3 +1,5 @@
+import re
+
 def make_name_AxxBxx(name):
     parts = name.split(' ')
     mp = []
@@ -72,3 +74,6 @@ NameUtil = {
     'function': make_struct_name,
     'class': make_class_name
 }
+
+# type regex
+TypeRegEx = re.compile(r'\s*(?P<const>(const\s+)?)(?P<type>[\w\s]*\w)(?P<pointer>[\*\s]*)', re.I)
