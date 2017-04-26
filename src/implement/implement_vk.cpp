@@ -604,12 +604,28 @@ SamplerImpl::~SamplerImpl()
 {
 }
 
-RenderPassImpl::RenderPassImpl()
+RenderPassImpl::RenderPassImpl(DeviceImpl* pDevice, const sphRenderPassDesc* pDesc)
+  : Device(pDevice)
 {
 }
 
 RenderPassImpl::~RenderPassImpl()
 {
+}
+
+RenderTargetImpl::RenderTargetImpl(DeviceImpl* pDevice)
+  : RenderTargetImpl::This()
+  , Device(pDevice)
+{
+  VkFramebufferCreateInfo Info = {};
+  vkCreateFramebuffer(Device->Handle, &Info, nullptr, &Handle);
+  Device->AddRef();
+}
+
+RenderTargetImpl::~RenderTargetImpl()
+{
+  vkDestroyFramebuffer(Device->Handle, Handle, nullptr);
+  Device->Release();
 }
 
 ISPHFactory * CreateFactory()

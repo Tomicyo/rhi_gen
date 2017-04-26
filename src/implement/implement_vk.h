@@ -137,6 +137,7 @@ class DeviceImpl : public TObj<VkDevice, ISPHDevice>
   friend class BufferImpl;
   friend class BufferViewImpl;
   friend class PipelineStateImpl;
+  friend class RenderTargetImpl;
   friend class LinearMemoryAllocator;
   template <typename VkObj, typename VkResI> friend class TResource;
 public:
@@ -360,6 +361,16 @@ private:
   VkRenderPassCreateInfo CachedCreateInfo = { VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO };
   VkFramebufferCreateInfo FramebufferCreateInfo = { VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO };
   VkFramebuffer Framebuffer = VK_NULL_HANDLE;
+};
+// Framebuffer Depend on RenderPass
+class RenderTargetImpl : public TObj<VkFramebuffer, ISPHRenderTarget>
+{
+public:
+  using This = TObj<VkFramebuffer, ISPHRenderTarget>;
+private:
+  RenderTargetImpl(DeviceImpl* pDevice);
+  ~RenderTargetImpl();
+  DeviceImpl* Device;
 };
 
 extern API ISPHFactory * CreateFactory();
