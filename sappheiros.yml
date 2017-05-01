@@ -113,6 +113,7 @@ protype:
             - Transfer Dest
             - Present
             - Generic Read
+            - Unorder Access
 
     - resource view type:
         type: enum
@@ -736,6 +737,16 @@ protype:
     #device child:
     #    type: interface
     #    inherit: device
+    - fence:
+        type: interface
+        inherit: ref obj
+        functions:
+          - wait
+          - reset
+
+    - frame buffer:
+        type: interface
+        inherit: ref obj
 
     - command queue:
         type: interface
@@ -749,38 +760,56 @@ protype:
         comment: Gpu Command Buffer
         inherit: ref obj
         functions:
-            - commit
-            - present:
+            - commit:
                 params:
-                    - name: pSwapChain
-                      type: swap chain *
-            - copy texture
-            - copy buffer
+                  - type: fence *
+                    name: pFence
+            - render command encoder:
+                return: render command encoder *
+            - compute command encoder:
+                return: compute command encoder *
+            - parallel command encoder:
+                return: parallel render command encoder *
+
+    - command encoder:
+        type: interface
+        functions:
+            - copy texture:
+                params:
+                  -
+            - copy buffer:
+                params:
+                  -
+            - set pipeline state:
+                params:
+                  - name: pPipelineState
+                    type: pipeline state*
+            - set pipeline layout:
+                params:
+                  - name: pPipelineLayout
+                    type: pipeline layout *
+            - set binding table:
+                params:
+                  - name: pBindingTable
+                    type: binding table *
+            - end encode
+
+
+    - render command encoder:
+        type: interface
+        inherit: command encoder
+        comment: Render Command Encoder
+        functions:
             - clear color depth:
                 params:
                     - 
-            - begin
-            - begin render pass:
+            - set scissor rect:
                 params:
-                    - name: pRenderPass
-                      type: const render pass*
-            - set scissor rects
+                  -
             - set viewport:
                 params:
                     - name: pViewport
                       type: const viewport *
-            - set pipeline state:
-                params:
-                    - name: pPipelineState
-                      type: pipeline state*
-            - set pipeline layout:
-                params:
-                    - name: pPipelineLayout
-                      type: pipeline layout *
-            - set binding table:
-                params:
-                    - name: pBindingTable
-                      type: binding table *
             - set index buffer:
                     - name: pIndexBuffer
                       type: buffer *
@@ -804,8 +833,15 @@ protype:
                 params:
                     - name: drawParam
                       type: const draw indexed instanced desc *
-            - end render pass
-            - end
+            - present:
+                params:
+                    - name: pSwapChain
+                      type: swap chain *
+
+    - compute command encoder:
+        type: interface
+        inherit: command encoder
+        functions:
             - dispatch:
                 params:
                     - name: x
@@ -814,5 +850,10 @@ protype:
                       type: uint32_t
                     - name: z
                       type: uint32_t
-            - execute bundle
 
+    - parallel render command encoder:
+        type: interface
+        inherit: command encoder
+        functions:
+          - encoder:
+              return: render command encoder *
